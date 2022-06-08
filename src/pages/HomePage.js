@@ -4,6 +4,8 @@ import { TextField } from "@mui/material";
 import axios from "axios";
 import PastGamesTable from "../components/PastGamesTable";
 
+var game_on = false;
+
 function HomePage({ socket }) {
   const SERVER_URI = "http://localhost:3000";
 
@@ -24,6 +26,7 @@ function HomePage({ socket }) {
   };
 
   function handleInit(value) {
+    game_on = true;
     console.log("connected player", value);
   }
 
@@ -37,7 +40,7 @@ function HomePage({ socket }) {
   }
 
   function newGame() {
-    console.log("emitting");
+    game_on = true;
     socket.emit("newGame");
   }
   function joinGame(inputGameCode) {
@@ -58,16 +61,31 @@ function HomePage({ socket }) {
 
   return (
     <div>
-      <Button onClick={newGame}>Create New Game</Button>
+      <div class="break-div"></div>
+      {false ? <p>Hello World</p> : null}
+      { !game_on ?
+      <div class="single-bar">
+        <Button onClick={newGame} class="single-bar-inside">Create New Game</Button>
+      </div> : null }
 
-      <TextField value={inputGameCode} onChange={handleSetInputGameCode} />
+      { !game_on ?
+      <div class="single-bar">
+        <div class="single-bar-inside">
+          <TextField id="textFieldJoin" value={inputGameCode} onChange={handleSetInputGameCode} />
+          <Button id="joinGameBtn" onClick={() => joinGame(inputGameCode)}>Join Game</Button>
+        </div>
+      </div> : null }
 
-      <Button onClick={() => joinGame(inputGameCode)}>Join Game</Button>
-      <Button onClick={() => pickChoice("rock")}>Rock</Button>
-      <Button onClick={() => pickChoice("scissors")}>Scissors</Button>
-      <Button onClick={() => pickChoice("paper")}>Paper</Button>
-      <Button onClick={getSocketId}>Get Socket Id</Button>
-      <div>You are on room {gameCode}</div>
+      { game_on ?
+      <div class="single-bar2">
+        <div class="single-bar-inside">
+          <span onClick={() => pickChoice("rock")} class="icon solid major style1 fa-hand-rock game-icon"></span>
+          <span onClick={() => pickChoice("scissors")} class="icon solid major style1 fa-hand-scissors game-icon"></span>
+          <span onClick={() => pickChoice("paper")} class="icon solid major style1 fa-hand-paper game-icon"></span>
+        </div>
+      </div> : null }
+
+      <div>Your room: {gameCode}</div>
       {pastGames && <PastGamesTable data={pastGames} />}
     </div>
   );
