@@ -1,105 +1,115 @@
 import { useEffect, useState } from "react";
 import Button from "@mui/material/Button";
-import { TextField } from "@mui/material";
-import axios from "axios";
-import PastGamesTable from "../components/PastGamesTable";
-import AlertPopUp from "../components/AlertPopUp";
+import { Grid, TextField, ThemeProvider, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import rpsImage from "../images/rps.png";
+import { createTheme } from "@mui/material/styles";
 
 function HomePage({ socket }) {
-  const SERVER_URI = "http://localhost:3000";
   let navigate = useNavigate();
-
-  const [gameCode, setGameCode] = useState("");
   const [inputGameCode, setInputGameCode] = useState("");
-  const [player1Choide, setPlayer1Choice] = useState("");
-  const [player2Choide, setPlayer2Choice] = useState("");
-  const [pastGames, setPastGames] = useState();
-  const [playerNum, setPlayerNum] = useState();
-  const [winner, setWinner] = useState();
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  useEffect(() => {
-    socket.off("init").on("init", handleInit);
-    socket.on("gameCode", handleGameCode);
-    socket.off("gameFinished").on("gameFinished", handleGameFinished);
-    socket.off("setWinner").on("setWinner", handleSetWinner);
-  }, []);
 
   const handleSetInputGameCode = (event) => {
     setInputGameCode(event.target.value);
   };
 
-  function handleInit(value) {
-    console.log("connected player", value);
-    setPlayerNum(value);
-  }
-
-  function handleGameCode(request) {
-    setGameCode(request);
-  }
-
-  function handleGameFinished() {
-    console.log("playerNum", playerNum);
-    setDialogOpen(true);
-  }
-  function handleSetWinner(winner) {
-    setWinner(winner);
-  }
-
   function newGame() {
     console.log("emitting");
     socket.emit("newGame");
+    navigate("/playGame");
   }
 
   function joinGame(inputGameCode) {
     socket.emit("joinGame", inputGameCode);
+    navigate("/playGame");
   }
   function joinRandomGame() {
     socket.emit("joinRandomGame");
+    navigate("/playGame");
   }
-  function pickChoice(choice) {
-    socket.emit("pickChoice", choice);
+  function handlePastGames() {
+    navigate("/pastGames");
   }
-  function handleCloseDialog() {
-    setDialogOpen(false);
+  function handleSetPlayerName() {
+    navigate("/setPlayerName");
   }
-  function resetGame() {
-    if (playerNum === 1) socket.emit("resetGame");
-  }
-  async function getSocketId() {
-    console.log("holaaaaa");
-
-    const response = await axios.get(`${SERVER_URI}/pastGames`);
-    setPastGames(response.data);
-
-    console.log(pastGames);
-    socket.emit("getSocketId");
-  }
-
+  const theme = createTheme({
+    status: {
+      danger: "#e53e3e",
+    },
+    palette: {
+      primary: {
+        main: "#0971f1",
+        darker: "#053e85",
+      },
+      newColor: {
+        main: "#000000",
+        contrastText: "#ffffff",
+      },
+    },
+  });
   return (
-    <div>
-      <Button onClick={newGame}>Create New Game</Button>
-      <Button onClick={joinRandomGame}>Join Random Game</Button>
+    <div width="100%">
+      <ThemeProvider theme={theme}>
+        <Grid alignItems="center" container direction="column" spacing={4}>
+          <img
+            width="70%"
+            style={{ alignSelf: "center" }}
+            height="auto"
+            src={rpsImage}
+          />
+        </Grid>
 
-      <TextField value={inputGameCode} onChange={handleSetInputGameCode} />
-
-      <Button onClick={() => joinGame(inputGameCode)}>Join Game</Button>
-      <Button onClick={() => pickChoice("rock")}>Rock</Button>
-      <Button onClick={() => pickChoice("scissors")}>Scissors</Button>
-      <Button onClick={() => pickChoice("paper")}>Paper</Button>
-      <Button onClick={getSocketId}>Get Socket Id</Button>
-      <div>You are on room {gameCode}</div>
-      {pastGames && <PastGamesTable data={pastGames} />}
-      {winner && (
-        <AlertPopUp
-          open={dialogOpen}
-          winner={winner}
-          player={playerNum}
-          handleClose={handleCloseDialog}
-          resetGame={resetGame}
-        ></AlertPopUp>
-      )}
+        <Grid alignItems="center" container direction="column" spacing={4}>
+          <Grid item xs={8}>
+            <Button color="newColor" variant="contained" onClick={newGame}>
+              Create New Game
+            </Button>
+          </Grid>
+          <Grid item xs={3}>
+            <TextField
+              value={inputGameCode}
+              onChange={handleSetInputGameCode}
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <Button
+              color="newColor"
+              variant="contained"
+              onClick={() => joinGame(inputGameCode)}
+            >
+              Join Game
+            </Button>
+          </Grid>
+          <Grid item xs={8}>
+            <Button
+              color="newColor"
+              variant="contained"
+              onClick={joinRandomGame}
+            >
+              Join Random Game
+            </Button>
+          </Grid>
+          <Grid item xs={8}>
+            <Button
+              color="newColor"
+              variant="contained"
+              onClick={handlePastGames}
+            >
+              See All Games
+            </Button>
+          </Grid>
+          <Grid item xs={8}>
+            <Button
+              color="newColor"
+              variant="contained"
+              onClick={handleSetPlayerName}
+            >
+              Set Player Name
+            </Button>
+          </Grid>
+        </Grid>
+      </ThemeProvider>
     </div>
   );
 }
